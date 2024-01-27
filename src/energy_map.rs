@@ -1,9 +1,8 @@
-use image::{Pixel, Rgb, RgbImage};
-use rand::Rng;
+use image::{GrayImage, Luma, Pixel, RgbImage};
 
-pub fn calculate_energy_map(image: &RgbImage) -> RgbImage {
+pub fn calculate_energy_map(image: &RgbImage) -> GrayImage {
     let (image_width, image_height) = image.dimensions();
-    let mut energy_map = RgbImage::new(image_width, image_height);
+    let mut energy_map = GrayImage::new(image_width, image_height);
 
     for y in 1..(image_height - 1) {
         for x in 1..(image_width - 1) {
@@ -19,9 +18,9 @@ pub fn calculate_energy_map(image: &RgbImage) -> RgbImage {
                 }
             }
 
-            let energy = (gradient_x.abs().max(gradient_y.abs()) as f32).clamp(0.0, 255.0) as f64;
+            let energy = (gradient_x.abs().max(gradient_y.abs()) as f32).clamp(0.0, 255.0) as u8;
 
-            energy_map.put_pixel(x, y, Rgb([(energy * rnd()) as u8, (energy * rnd()) as u8, (energy * rnd()) as u8]));
+            energy_map.put_pixel(x, y, Luma([energy]));
         }
     }
 
@@ -34,9 +33,4 @@ fn calculate_sobel_coefficient(axis_offset: i16) -> i16 {
         1 => 0,
         _ => 1,
     }
-}
-
-fn rnd() -> f64 {
-    let mut rng = rand::thread_rng();
-    rng.gen_range(0.2..1.0)
 }
