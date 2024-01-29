@@ -1,26 +1,37 @@
 mod energy_map;
 mod seam_removal;
+mod matrix;
+
 use std::{path::Path, time::Instant};
 
-use energy_map::calculate_energy_map;
+use image::imageops;
 
 use crate::seam_removal::remove_vertical_seam;
 
-const TARGET_WIDTH: u32 = 1000;
+const TARGET_WIDTH: u32 = 800;
+// const TARGET_HEIGHT: u32 = 800;
 
 fn main() {
     let source_image_path = Path::new("./images/tower.jpg");
     let mut image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
 
-    let energy_map_calculation_time = Instant::now();
-    let mut energy_map = calculate_energy_map(&image);
-    println!("Energy map is calculated in {}ms", energy_map_calculation_time.elapsed().as_millis());
-
-    for i in 0..(image.width() - TARGET_WIDTH)  {
-        remove_vertical_seam(&mut image, &energy_map);
-        energy_map = calculate_energy_map(&image);
-        dbg!("removed", i);
+    while image.width() > TARGET_WIDTH {
+        let now = Instant::now();
+        remove_vertical_seam(&mut image);
+        println!("V: {} ms", now.elapsed().as_millis())
     }
 
-    image.save("vertical_carving.png").unwrap();
+    // if image.height() > TARGET_HEIGHT {
+    //     imageops::rotate90(&image);
+
+    //     while image.height() > TARGET_WIDTH {
+    //         let now = Instant::now();
+    //         remove_vertical_seam(&mut image);
+    //         println!("H: {} ms", now.elapsed().as_millis())
+    //     }
+
+    //     imageops::rotate270(&image);
+    // }
+
+    image.save("carved.png").unwrap();
 }
