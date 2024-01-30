@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Matrix<T> {
     pub height: u32,
     pub width: u32,
