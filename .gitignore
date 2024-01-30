@@ -3,5 +3,5 @@
 *.jpg
 *.png
 !/images/*
-*.data
+*.data*
 flamegraph.svg
