@@ -10,14 +10,14 @@ pub struct Seam {
     pub y: u32,
 }
 
-pub fn remove_seams_up_to(image: &mut RgbImage, width: u32, height: u32) {
+pub fn remove_seams_up_to<F: Fn(u32)>(image: &mut RgbImage, width: u32, height: u32, callback: F) {
     while image.width() > width {
-        let now = Instant::now();
+        callback(image.width());
+
         let energy_map = calculate_energy_map(image, false);
         let seam = find_vertical_seam(energy_map);
 
         remove_vertical_seam(image, seam);
-        println!("{}", now.elapsed().as_millis());
     }
 }
 

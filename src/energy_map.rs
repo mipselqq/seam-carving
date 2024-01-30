@@ -26,8 +26,8 @@ pub fn calculate_energy_map(image: &RgbImage, is_reduced_precision: bool) -> Mat
 
             for x_offset in &surroundings {
                 for y_offset in &surroundings {
-                    let x_pos = (x + x_offset - 1).max(0).min(width - 1);
-                    let y_pos = (y + y_offset - 1).max(0).min(height - 1);
+                    let x_pos = (x + x_offset).max(0).min(width - 1);
+                    let y_pos = (y + y_offset).max(0).min(height - 1);
                     let pixel_intensity = image_buffer[(x_pos + y_pos * width) as usize].to_luma()[0] as i16;
 
                     gradient_x += sobel_coefficients[*x_offset as usize] * pixel_intensity;
