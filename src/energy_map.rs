@@ -7,8 +7,7 @@ pub fn calculate_energy_map(image: &RgbImage) -> Matrix<u8> {
 
     let sobel_coefficients = [-1, 0, 1];
 
-    // This saves a couple of milliseconds
-    let image_buffer: Vec<_> = image.pixels().collect();
+    let luma_buffer: Vec<_> = image.pixels().map(|pixel| pixel.to_luma()).collect();
 
     for y in 1..(height - 1) {
         for x in 1..(width - 1) {
@@ -17,7 +16,7 @@ pub fn calculate_energy_map(image: &RgbImage) -> Matrix<u8> {
 
             for x_offset in 0..3 {
                 for y_offset in 0..3 {
-                    let pixel_intensity = image_buffer[(x + x_offset - 1 + (y + y_offset - 1) * width) as usize].to_luma()[0] as i16;
+                    let pixel_intensity = luma_buffer[(x + x_offset - 1 + (y + y_offset - 1) * width) as usize][0] as i16;
 
                     gradient_x += sobel_coefficients[x_offset as usize] * pixel_intensity;
                     gradient_y += sobel_coefficients[y_offset as usize] * pixel_intensity;
