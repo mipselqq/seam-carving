@@ -10,12 +10,18 @@ pub struct Seam {
     pub y: u32,
 }
 
-pub fn remove_vertical_seam(image: &mut RgbImage) {
-    let now = Instant::now();
-    let energy_map = calculate_energy_map(&image);
-    println!("V: {} ms", now.elapsed().as_millis());
-    let seam = find_vertical_seam(&energy_map);
+pub fn remove_seams_up_to(image: &mut RgbImage, width: u32, height: u32) {
+    while image.width() > width {
+        let now = Instant::now();
+        let energy_map = calculate_energy_map(image, false);
+        let seam = find_vertical_seam(energy_map);
 
+        remove_vertical_seam(image, seam);
+        println!("{}", now.elapsed().as_millis());
+    }
+}
+
+pub fn remove_vertical_seam(image: &mut RgbImage, seam: Vec<Seam>) {
     let (width, height) = image.dimensions();
 
     for Seam { x, y } in seam {
@@ -29,14 +35,14 @@ pub fn remove_vertical_seam(image: &mut RgbImage) {
     *image = sub_image.to_image();
 }
 
-pub fn find_vertical_seam(energy_map: &Matrix<u8>) -> Vec<Seam> {
+pub fn find_vertical_seam(energy_map: Matrix<u8>) -> Vec<Seam> {
     let (dp_table, min_indices) = make_dp_table(energy_map);
     let seams = traverse_back_dp_table(&dp_table, &min_indices);
 
     seams
 }
 
-fn make_dp_table(energy_map: &Matrix<u8>) -> (Matrix<u32>, Matrix<i32>) {
+fn make_dp_table(energy_map: Matrix<u8>) -> (Matrix<u32>, Matrix<i32>) {
     let height = energy_map.height;
     let width = energy_map.width;
 

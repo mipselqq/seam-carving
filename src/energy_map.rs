@@ -1,26 +1,37 @@
 use image::{Pixel, RgbImage};
 use crate::matrix::Matrix;
 
-pub fn calculate_energy_map(image: &RgbImage) -> Matrix<u8> {
+const LEFT: u32 = 0;
+const MID: u32 = 1;
+const RIGHT: u32 = 2;
+
+pub fn calculate_energy_map(image: &RgbImage, is_reduced_precision: bool) -> Matrix<u8> {
     let (width, height) = image.dimensions();
     let mut energy_map = Matrix::new(height, width, vec![0; (height * width) as usize]);
 
-    let sobel_coefficients = [-1, 0, 1];
-
-    // This saves a couple of milliseconds
     let image_buffer: Vec<_> = image.pixels().collect();
 
-    for y in 1..(height - 1) {
-        for x in 1..(width - 1) {
+    let sobel_coefficients = [-1, 0, 1];
+
+    let surroundings: Vec<u32> = if is_reduced_precision {
+        vec![MID]
+    } else {
+        vec![LEFT, MID, RIGHT]
+    };
+
+    for y in 0..height {
+        for x in 0..width {
             let mut gradient_x = 0i16;
             let mut gradient_y = 0i16;
 
-            for x_offset in 0..3 {
-                for y_offset in 0..3 {
-                    let pixel_intensity = image_buffer[(x + x_offset - 1 + (y + y_offset - 1) * width) as usize].to_luma()[0] as i16;
+            for x_offset in &surroundings {
+                for y_offset in &surroundings {
+                    let x_pos = (x + x_offset - 1).max(0).min(width - 1);
+                    let y_pos = (y + y_offset - 1).max(0).min(height - 1);
+                    let pixel_intensity = image_buffer[(x_pos + y_pos * width) as usize].to_luma()[0] as i16;
 
-                    gradient_x += sobel_coefficients[x_offset as usize] * pixel_intensity;
-                    gradient_y += sobel_coefficients[y_offset as usize] * pixel_intensity;
+                    gradient_x += sobel_coefficients[*x_offset as usize] * pixel_intensity;
+                    gradient_y += sobel_coefficients[*y_offset as usize] * pixel_intensity;
                 }
             }
 
