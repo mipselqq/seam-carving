@@ -7,3 +7,6 @@ edition = "2021"
 image = "0.24.8"
 ordered-float = "4.2.0"
 rand = "0.8.5"
+
+[profile.release]
+panic = "abort"
