@@ -39,10 +39,13 @@ fn main() {
     let is_fast = args.fast == 1;
 
     let image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
-    let width = image.width();
+    let (width, height) = image.dimensions();
     let mut carving_image_view = CarvingImageView::from_image(image);
 
-    let mut prograss_bar = ProgressBar::new(width as u64 - target_width as u64);
+    let mut prograss_bar = ProgressBar::new(
+        ((width - target_width).clamp(0, target_width) +
+        (height - target_height).clamp(0, target_height)) as u64
+    );
 
     remove_seams_up_to(&mut carving_image_view, target_width, target_height, !is_fast, || {
         prograss_bar.inc();

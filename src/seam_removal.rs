@@ -1,4 +1,3 @@
-use image::RgbImage;
 use crate::{carving_image_view::CarvingImageView, energy_map::calculate_energy_map, matrix::Matrix};
 
 #[derive(Debug, Clone)]
@@ -88,8 +87,8 @@ fn make_dp_table(energy_map: &Matrix<u8>) -> (Matrix<u32>, Matrix<i32>) {
 
 
 fn traverse_back_dp_table(dp_table: &Matrix<u32>, path_table: &Matrix<i32>) -> Vec<Seam> {
-    let mut seams = Vec::new();
     let height = dp_table.height;
+    let mut seams = Vec::with_capacity(height as usize);
 
     let mut current_x = dp_table.min_index_in_row(height - 1);
     for y in (0..height).rev() {
