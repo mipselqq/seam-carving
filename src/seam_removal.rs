@@ -52,7 +52,7 @@ fn make_dp_table(energy_map: &Matrix<u8>) -> (Matrix<u32>, Matrix<i32>) {
     let mut dp_table = Matrix::new(height, width, vec![0u32; (width * height) as usize]);
     let mut path_table = Matrix::new(height, width, vec![0i32; (width * height) as usize]);
 
-    for y in 1..energy_map.height {
+    for y in 1..height {
         for x in 0..width {
             let current_energy = energy_map.get_value_at(x, y);
 
