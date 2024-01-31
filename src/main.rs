@@ -1,10 +1,13 @@
+use carving_image_view::CarvingImageView;
 use clap::Parser;
+use pbr::ProgressBar;
 use std::path::Path;
 use seam_removal::remove_seams_up_to;
 
 mod energy_map;
 mod seam_removal;
 mod matrix;
+mod carving_image_view;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -31,13 +34,16 @@ fn main() {
     let target_height: u32 = args.height;
     let output_path = &args.output;
 
-    let mut image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
+    let image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
+    let mut carving_image_view = CarvingImageView::from_image(image);
 
-    remove_seams_up_to(&mut image, target_width, target_height, false, |image_width| {
-        let width_left = image_width - target_width;
+    let mut prograss_bar = ProgressBar::new(target_width.into());
 
-        println!("Pixels left to carve: {width_left}")
+    remove_seams_up_to(&mut carving_image_view, target_width, target_height, false, || {
+        prograss_bar.inc();
     });
 
-    image.save(output_path).unwrap();
+    carving_image_view.full_image.save(output_path).unwrap();
+
+    prograss_bar.finish_print("done");
 }

@@ -1,6 +1,5 @@
 use image::RgbImage;
-
-use crate::{energy_map::calculate_energy_map, matrix::Matrix};
+use crate::{carving_image_view::CarvingImageView, energy_map::calculate_energy_map, matrix::Matrix};
 
 #[derive(Debug, Clone)]
 pub struct Seam {
@@ -8,36 +7,37 @@ pub struct Seam {
     pub y: u32,
 }
 
-pub fn remove_seams_up_to<F: Fn(u32)>(image: &mut RgbImage, width: u32, height: u32, recalculate_energy: bool, callback: F) {
-    let mut energy_map = calculate_energy_map(image);
+pub fn remove_seams_up_to<F: FnMut()>(image_view: &mut CarvingImageView, width: u32, height: u32, recalculate_energy: bool, mut callback: F) {
+    let mut energy_map = calculate_energy_map(image_view);
 
-    while image.width() > width {
-        callback(image.width());
-
+    while image_view.width() > width {
         let seam = find_vertical_seam(&energy_map);
 
         if recalculate_energy {
-            energy_map = calculate_energy_map(image);
+            energy_map = calculate_energy_map(image_view);
         } else {
             crate::energy_map::remove_vertical_seam(&mut energy_map, seam.clone());
         }
 
-        self::remove_vertical_seam(image, seam);
+        self::remove_vertical_seam(image_view, seam);
+
+        callback();
     }
+
+    image_view.sync_dimensions();
 }
 
-pub fn remove_vertical_seam(image: &mut RgbImage, seam: Vec<Seam>) {
-    let (width, height) = image.dimensions();
+pub fn remove_vertical_seam(image_view: &mut CarvingImageView, seam: Vec<Seam>) {
+    let width = image_view.width();
 
     for Seam { x, y } in seam {
         for i in x..width - 1 {
-            let p = image.get_pixel(i + 1, y);
-            image.put_pixel(i, y, *p);
+            let p = unsafe { image_view.unsafe_get_pixel(i + 1, y) };
+            unsafe { image_view.unsafe_put_pixel(i, y, p) };
         }
     }
 
-    let sub_image = image::imageops::crop(image, 0, 0, width - 1, height);
-    *image = sub_image.to_image();
+    image_view.set_width(width - 1);
 }
 
 pub fn find_vertical_seam(energy_map: &Matrix<u8>) -> Vec<Seam> {
