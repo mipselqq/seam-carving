@@ -12,6 +12,10 @@ impl<T: fmt::Debug + Ord + Copy> Matrix<T> {
         Matrix { height, width, data }
     }
 
+    pub fn dimensions(&self) -> (u32, u32) {
+        (self.width, self.height)
+    }
+
     pub fn get_value_at(&self, x: u32, y: u32) -> &T {
         &self.data[(y * self.width + x) as usize]
     }
@@ -29,19 +33,18 @@ impl<T: fmt::Debug + Ord + Copy> Matrix<T> {
         min_index as u32
     }
 
-    pub fn as_csv(&self) -> String {
-        let mut buffer = String::with_capacity((self.height * self.width) as usize);
+    pub fn crop(&mut self, x: u32, y: u32, width: u32, height: u32) {
+        let mut new_data = Vec::new();
 
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let value = self.get_value_at(x, y);
-
-                buffer += &format!("{value:?},")
+        for j in y..y+height {
+            for i in x..x+width {
+                let value = *self.get_value_at(i, j);
+                new_data.push(value);
             }
-
-            buffer += "\n";
         }
 
-        buffer
+        self.data = new_data;
+        self.width = width;
+        self.height = height;
     }
 }

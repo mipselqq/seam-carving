@@ -33,7 +33,7 @@ fn main() {
 
     let mut image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
 
-    remove_seams_up_to(&mut image, target_width, target_height, |image_width| {
+    remove_seams_up_to(&mut image, target_width, target_height, false, |image_width| {
         let width_left = image_width - target_width;
 
         println!("Pixels left to carve: {width_left}")

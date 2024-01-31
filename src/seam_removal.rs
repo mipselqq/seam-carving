@@ -1,23 +1,28 @@
-use std::time::Instant;
-
 use image::RgbImage;
 
 use crate::{energy_map::calculate_energy_map, matrix::Matrix};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Seam {
     pub x: u32,
     pub y: u32,
 }
 
-pub fn remove_seams_up_to<F: Fn(u32)>(image: &mut RgbImage, width: u32, height: u32, callback: F) {
+pub fn remove_seams_up_to<F: Fn(u32)>(image: &mut RgbImage, width: u32, height: u32, recalculate_energy: bool, callback: F) {
+    let mut energy_map = calculate_energy_map(image);
+
     while image.width() > width {
         callback(image.width());
 
-        let energy_map = calculate_energy_map(image);
-        let seam = find_vertical_seam(energy_map);
+        let seam = find_vertical_seam(&energy_map);
 
-        remove_vertical_seam(image, seam);
+        if recalculate_energy {
+            energy_map = calculate_energy_map(image);
+        } else {
+            crate::energy_map::remove_vertical_seam(&mut energy_map, seam.clone());
+        }
+
+        self::remove_vertical_seam(image, seam);
     }
 }
 
@@ -35,16 +40,15 @@ pub fn remove_vertical_seam(image: &mut RgbImage, seam: Vec<Seam>) {
     *image = sub_image.to_image();
 }
 
-pub fn find_vertical_seam(energy_map: Matrix<u8>) -> Vec<Seam> {
+pub fn find_vertical_seam(energy_map: &Matrix<u8>) -> Vec<Seam> {
     let (dp_table, min_indices) = make_dp_table(energy_map);
     let seams = traverse_back_dp_table(&dp_table, &min_indices);
 
     seams
 }
 
-fn make_dp_table(energy_map: Matrix<u8>) -> (Matrix<u32>, Matrix<i32>) {
-    let height = energy_map.height;
-    let width = energy_map.width;
+fn make_dp_table(energy_map: &Matrix<u8>) -> (Matrix<u32>, Matrix<i32>) {
+    let (width, height) = energy_map.dimensions();
 
     let mut dp_table = Matrix::new(height, width, vec![0u32; (width * height) as usize]);
     let mut path_table = Matrix::new(height, width, vec![0i32; (width * height) as usize]);
