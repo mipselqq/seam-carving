@@ -5,3 +5,4 @@
 !/images/*
 *.data*
 flamegraph.svg
+heaptrack*
