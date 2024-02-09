@@ -16,6 +16,10 @@ impl<T: fmt::Debug + Ord + Copy> Matrix<T> {
         }
     }
 
+    pub fn from_dimensions_filled_with(height: u32, width: u32, fill_value: T) -> Matrix<T> {
+        Matrix::new(height, width, vec![fill_value; (width * height) as usize])
+    }
+
     pub fn dimensions(&self) -> (u32, u32) {
         (self.width, self.height)
     }
