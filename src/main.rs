@@ -1,5 +1,5 @@
-use carving_image_view::CarvingImageView;
 use clap::Parser;
+use image::GenericImage;
 use pbr::ProgressBar;
 use std::path::Path;
 use seam_removal::remove_seams_up_to;
@@ -7,7 +7,7 @@ use seam_removal::remove_seams_up_to;
 mod energy_map;
 mod seam_removal;
 mod matrix;
-mod carving_image_view;
+mod types;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -38,20 +38,17 @@ fn main() {
     let output_path = args.output;
     let is_fast = args.fast == 1;
 
-    let image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
+    let mut image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
     let (width, height) = image.dimensions();
-    let mut carving_image_view = CarvingImageView::from_image(image);
+    let mut sub_image = image.sub_image(0, 0, width, height);
 
-    let mut prograss_bar = ProgressBar::new(
-        ((width - target_width).clamp(0, target_width) +
-        (height - target_height).clamp(0, target_height)) as u64
-    );
+    let mut prograss_bar = ProgressBar::new((width - target_width).into());
 
-    remove_seams_up_to(&mut carving_image_view, target_width, target_height, !is_fast, || {
+    remove_seams_up_to(&mut sub_image, target_width, target_height, !is_fast, || {
         prograss_bar.inc();
     });
 
-    carving_image_view.full_image.save(output_path).unwrap();
+    sub_image.to_image().save(output_path).unwrap();
 
     prograss_bar.finish_print("done");
 }

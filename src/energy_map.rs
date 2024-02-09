@@ -1,12 +1,12 @@
-use image::{GenericImageView, Pixel, RgbImage};
-use crate::{carving_image_view::CarvingImageView, matrix::Matrix, seam_removal::Seam};
+use image::{GenericImageView, Pixel};
+use crate::{matrix::Matrix, seam_removal::SeamPixel, types::SubImageOfRgbBuffer};
 
 const LEFT: u32 = 0;
 const MID: u32 = 1;
 const RIGHT: u32 = 2;
 const SURROUNDINGS: [u32; 3] = [LEFT, MID, RIGHT];
 
-pub fn calculate_energy_map(image_view: &CarvingImageView) -> Matrix<u8> {
+pub fn calculate_energy_map(image_view: &mut SubImageOfRgbBuffer) -> Matrix<u8> {
     let (width, height) = image_view.dimensions();
     let mut energy_map = Matrix::new(height, width, vec![0; (height * width) as usize]);
 
@@ -38,13 +38,13 @@ pub fn calculate_energy_map(image_view: &CarvingImageView) -> Matrix<u8> {
     energy_map
 }
 
-pub fn remove_vertical_seam(energy_map: &mut Matrix<u8>, seam: Vec<Seam>) {
+pub fn remove_vertical_seam<'a>(energy_map: &'a mut Matrix<u8>, seam: &'a Vec<SeamPixel>) {
     let (width, height) = energy_map.dimensions();
 
-    for Seam { x, y } in seam {
-        for i in x..width - 1 {
-            let p = energy_map.get_value_at(i + 1, y);
-            energy_map.set_value_at(i, y, *p);
+    for SeamPixel { x, y } in seam {
+        for i in *x..width - 1 {
+            let p = energy_map.get_value_at(i + 1, *y);
+            energy_map.set_value_at(i, *y, *p);
         }
     }
 
