@@ -1,12 +1,12 @@
-use image::{GenericImageView, Pixel};
-use crate::{matrix::Matrix, seam_removal::SeamPixel, types::SubImageOfRgbBuffer};
+use image::{GenericImageView, Pixel, RgbImage, SubImage};
+use crate::{matrix::Matrix, seam_removal::SeamPixel};
 
 const LEFT: u32 = 0;
 const MID: u32 = 1;
 const RIGHT: u32 = 2;
 const SURROUNDINGS: [u32; 3] = [LEFT, MID, RIGHT];
 
-pub fn calculate_energy_map(sub_image: &mut SubImageOfRgbBuffer) -> Matrix<u8> {
+pub fn generate_energy_map(sub_image: &mut SubImage<&mut RgbImage>) -> Matrix<u8> {
     let (width, height) = sub_image.dimensions();
     let mut energy_map = Matrix::new(height, width, vec![0; (height * width) as usize]);
 

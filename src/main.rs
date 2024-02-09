@@ -7,7 +7,6 @@ use std::path::Path;
 mod energy_map;
 mod seam_removal;
 mod matrix;
-mod types;
 mod userinput_parsing;
 
 #[derive(Parser, Debug)]

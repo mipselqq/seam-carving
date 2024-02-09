@@ -1,6 +1,6 @@
-use image::{imageops::{rotate270, rotate90}, GenericImage, GenericImageView, RgbImage};
+use image::{imageops::{rotate270, rotate90}, GenericImage, GenericImageView, RgbImage, SubImage};
 
-use crate::{energy_map::calculate_energy_map, matrix::Matrix, types::SubImageOfRgbBuffer};
+use crate::{energy_map::generate_energy_map, matrix::Matrix};
 
 #[derive(Debug, Clone)]
 pub struct SeamPixel {
@@ -23,13 +23,13 @@ fn remove_seams_up_to_target_width<F: FnMut()>(image: &mut RgbImage, target_widt
     let (width, height) = image.dimensions();
 
     let sub_image = &mut image.sub_image(0, 0, width, height);
-    let mut energy_map = calculate_energy_map(sub_image);
+    let mut energy_map = generate_energy_map(sub_image);
 
     while sub_image.width() > target_width {
         let seam = find_vertical_seam(&energy_map);
 
         if recalculate_energy {
-            energy_map = calculate_energy_map(sub_image);
+            energy_map = generate_energy_map(sub_image);
         } else {
             crate::energy_map::remove_vertical_seam(&mut energy_map, &seam);
         }
@@ -42,7 +42,7 @@ fn remove_seams_up_to_target_width<F: FnMut()>(image: &mut RgbImage, target_widt
     sub_image.to_image()
 }
 
-fn remove_vertical_seam(sub_image: &mut SubImageOfRgbBuffer, seam: Vec<SeamPixel>) {
+fn remove_vertical_seam(sub_image: &mut SubImage<&mut RgbImage>, seam: Vec<SeamPixel>) {
     let (width, height) = sub_image.dimensions();
 
     for SeamPixel { x, y } in seam {
