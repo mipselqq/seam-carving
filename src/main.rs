@@ -40,15 +40,14 @@ fn main() {
 
     let mut image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
     let (width, height) = image.dimensions();
-    let mut sub_image = image.sub_image(0, 0, width, height);
 
     let mut prograss_bar = ProgressBar::new((width - target_width).into());
 
-    remove_seams_up_to(&mut sub_image, target_width, target_height, !is_fast, || {
+    let carved = remove_seams_up_to(&mut image, target_width, target_height, !is_fast, || {
         prograss_bar.inc();
     });
 
-    sub_image.to_image().save(output_path).unwrap();
+    carved.save(output_path).unwrap();
 
     prograss_bar.finish_print("done");
 }

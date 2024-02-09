@@ -6,8 +6,8 @@ const MID: u32 = 1;
 const RIGHT: u32 = 2;
 const SURROUNDINGS: [u32; 3] = [LEFT, MID, RIGHT];
 
-pub fn calculate_energy_map(image_view: &mut SubImageOfRgbBuffer) -> Matrix<u8> {
-    let (width, height) = image_view.dimensions();
+pub fn calculate_energy_map(sub_image: &mut SubImageOfRgbBuffer) -> Matrix<u8> {
+    let (width, height) = sub_image.dimensions();
     let mut energy_map = Matrix::new(height, width, vec![0; (height * width) as usize]);
 
     let sobel_coefficients = [-1, 0, 1];
@@ -22,7 +22,7 @@ pub fn calculate_energy_map(image_view: &mut SubImageOfRgbBuffer) -> Matrix<u8> 
                     let x_pos = (x + x_offset).max(0).min(width - 1);
                     let y_pos = (y + y_offset).max(0).min(height - 1);
                     // It's totally safe (I guess)
-                    let pixel_intensity = unsafe { image_view.unsafe_get_pixel(x_pos, y_pos).to_luma() }[0] as i16;
+                    let pixel_intensity = unsafe { sub_image.unsafe_get_pixel(x_pos, y_pos).to_luma() }[0] as i16;
 
                     gradient_x += sobel_coefficients[x_offset as usize] * pixel_intensity;
                     gradient_y += sobel_coefficients[y_offset as usize] * pixel_intensity;
