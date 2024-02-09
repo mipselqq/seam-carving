@@ -1,13 +1,14 @@
 use clap::Parser;
-use image::GenericImage;
 use pbr::ProgressBar;
+use seam_removal::remove_seams_up_to_targets;
+use userinput_parsing::parse_target_dimension;
 use std::path::Path;
-use seam_removal::remove_seams_up_to;
 
 mod energy_map;
 mod seam_removal;
 mod matrix;
 mod types;
+mod userinput_parsing;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -17,10 +18,10 @@ struct Args {
     input: String,
 
     #[arg(short, long)]
-    width: u32,
+    width: String,
 
     #[arg(short, long)]
-    height: u32,
+    height: String,
 
     #[arg(short, long)]
     output: String,
@@ -33,21 +34,28 @@ fn main() {
     let args = Args::parse();
 
     let source_image_path = Path::new(&args.input);
-    let target_width = args.width;
-    let target_height = args.height;
     let output_path = args.output;
     let is_fast = args.fast == 1;
 
     let mut image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
     let (width, height) = image.dimensions();
 
-    let mut prograss_bar = ProgressBar::new((width - target_width).into());
+    let target_width = parse_target_dimension(args.width.to_string(), width);
+    let target_height = parse_target_dimension(args.height.to_string(), height);
 
-    let carved = remove_seams_up_to(&mut image, target_width, target_height, !is_fast, || {
-        prograss_bar.inc();
+    let mut width_prograss_bar = ProgressBar::new((width - target_width).into());
+    let mut height_prograss_bar = ProgressBar::new((height - target_height).into());
+
+    width_prograss_bar.message("Carving width: ");
+    height_prograss_bar.message("Carving height: ");
+
+    let carved = remove_seams_up_to_targets(&mut image, target_width, target_height, !is_fast, || {
+        width_prograss_bar.inc();
+    }, || {
+        height_prograss_bar.inc();
     });
 
     carved.save(output_path).unwrap();
 
-    prograss_bar.finish_print("done");
+    height_prograss_bar.finish_print("Done");
 }

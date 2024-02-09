@@ -1,4 +1,4 @@
-use image::{GenericImage, GenericImageView, RgbImage};
+use image::{imageops::{rotate270, rotate270_in, rotate90, rotate90_in}, GenericImage, GenericImageView, RgbImage};
 
 use crate::{energy_map::calculate_energy_map, matrix::Matrix, types::SubImageOfRgbBuffer};
 
@@ -8,7 +8,19 @@ pub struct SeamPixel {
     pub y: u32,
 }
 
-pub fn remove_seams_up_to<F: FnMut()>(image: &mut RgbImage, target_width: u32, target_height: u32, recalculate_energy: bool, mut callback: F) -> RgbImage {
+pub fn remove_seams_up_to_targets(image: &mut RgbImage, target_width: u32, target_height: u32, recalculate_energy: bool, on_width_change: impl FnMut(), on_height_change: impl FnMut()) -> RgbImage {
+    let mut width_carved_image = remove_seams_up_to_target_width(image, target_width, recalculate_energy, on_width_change);
+    // Swap an image's height with its width
+    let mut rotated_image = rotate90(&width_carved_image);
+    // Repeat the same thing with the rotated image
+    let mut height_carved_image = remove_seams_up_to_target_width(&mut rotated_image, target_height, recalculate_energy, on_height_change);
+    // Rotate it back
+    let final_image = rotate270(&height_carved_image);
+
+    final_image
+}
+
+fn remove_seams_up_to_target_width<F: FnMut()>(image: &mut RgbImage, target_width: u32, recalculate_energy: bool, mut callback: F) -> RgbImage {
     let (width, height) = image.dimensions();
 
     let sub_image = &mut image.sub_image(0, 0, width, height);
@@ -31,7 +43,7 @@ pub fn remove_seams_up_to<F: FnMut()>(image: &mut RgbImage, target_width: u32, t
     sub_image.to_image()
 }
 
-pub fn remove_vertical_seam(sub_image: &mut SubImageOfRgbBuffer, seam: Vec<SeamPixel>) {
+fn remove_vertical_seam(sub_image: &mut SubImageOfRgbBuffer, seam: Vec<SeamPixel>) {
     let (width, height) = sub_image.dimensions();
 
     for SeamPixel { x, y } in seam {
@@ -44,7 +56,7 @@ pub fn remove_vertical_seam(sub_image: &mut SubImageOfRgbBuffer, seam: Vec<SeamP
     sub_image.change_bounds(0, 0, width - 1, height);
 }
 
-pub fn find_vertical_seam(energy_map: &Matrix<u8>) -> Vec<SeamPixel> {
+fn find_vertical_seam(energy_map: &Matrix<u8>) -> Vec<SeamPixel> {
     let (dp_table, min_indices) = make_dp_table(energy_map);
 
     traverse_back_dp_table(&dp_table, &min_indices)
