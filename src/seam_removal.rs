@@ -1,4 +1,4 @@
-use image::{imageops::{rotate270, rotate270_in, rotate90, rotate90_in}, GenericImage, GenericImageView, RgbImage};
+use image::{imageops::{rotate270, rotate90}, GenericImage, GenericImageView, RgbImage};
 
 use crate::{energy_map::calculate_energy_map, matrix::Matrix, types::SubImageOfRgbBuffer};
 
@@ -9,15 +9,14 @@ pub struct SeamPixel {
 }
 
 pub fn remove_seams_up_to_targets(image: &mut RgbImage, target_width: u32, target_height: u32, recalculate_energy: bool, on_width_change: impl FnMut(), on_height_change: impl FnMut()) -> RgbImage {
-    let mut width_carved_image = remove_seams_up_to_target_width(image, target_width, recalculate_energy, on_width_change);
+    let width_carved_image = remove_seams_up_to_target_width(image, target_width, recalculate_energy, on_width_change);
     // Swap an image's height with its width
     let mut rotated_image = rotate90(&width_carved_image);
     // Repeat the same thing with the rotated image
-    let mut height_carved_image = remove_seams_up_to_target_width(&mut rotated_image, target_height, recalculate_energy, on_height_change);
+    let height_carved_image = remove_seams_up_to_target_width(&mut rotated_image, target_height, recalculate_energy, on_height_change);
     // Rotate it back
-    let final_image = rotate270(&height_carved_image);
-
-    final_image
+    
+    rotate270(&height_carved_image)
 }
 
 fn remove_seams_up_to_target_width<F: FnMut()>(image: &mut RgbImage, target_width: u32, recalculate_energy: bool, mut callback: F) -> RgbImage {
