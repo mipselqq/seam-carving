@@ -10,23 +10,28 @@ mod matrix;
 mod userinput_parsing;
 
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command()]
 #[clap(disable_help_flag = true)]
 struct Args {
+    /// Input image's path
     #[arg(short, long)]
     input: String,
 
+    /// Target width
     #[arg(short, long)]
     width: String,
 
+    /// Target height
     #[arg(short, long)]
     height: String,
 
+    /// Output image's path
     #[arg(short, long)]
     output: String,
 
+    /// Use faster but less precise algorithm
     #[arg(short, long)]
-    fast: u8,
+    fast: bool,
 }
 
 fn main() {
@@ -34,7 +39,7 @@ fn main() {
 
     let source_image_path = Path::new(&args.input);
     let output_path = args.output;
-    let is_fast = args.fast == 1;
+    let is_fast = args.fast;
 
     let mut image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
     let (width, height) = image.dimensions();
