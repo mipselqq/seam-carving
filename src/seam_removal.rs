@@ -31,7 +31,6 @@ pub fn remove_seams_up_to_targets(
         on_height_change,
     );
     // Rotate it back
-
     rotate270(&height_carved_image)
 }
 
@@ -142,7 +141,7 @@ fn traverse_back_dp_table(dp_table: &Matrix<u32>, path_table: &Matrix<u32>) -> V
     for y in (0..height).rev() {
         seams.push(SeamPixel { x: current_x, y });
 
-        current_x = current_x + *path_table.get_value_at(current_x, y);
+        current_x += path_table.get_value_at(current_x, y);
     }
 
     seams.reverse();
