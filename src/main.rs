@@ -1,13 +1,13 @@
 use clap::Parser;
+use cli_input_parsing::parse_target_dimension;
 use pbr::ProgressBar;
 use seam_removal::remove_seams_up_to_targets;
-use userinput_parsing::parse_target_dimension;
 use std::path::Path;
 
+mod cli_input_parsing;
 mod energy_map;
-mod seam_removal;
 mod matrix;
-mod userinput_parsing;
+mod seam_removal;
 
 #[derive(Parser, Debug)]
 #[command()]
@@ -41,7 +41,9 @@ fn main() {
     let output_path = args.output;
     let is_fast = args.fast;
 
-    let mut image = image::open(source_image_path).expect("Failed to read the image").into_rgb8();
+    let mut image = image::open(source_image_path)
+        .expect("Failed to read the image")
+        .into_rgb8();
     let (width, height) = image.dimensions();
 
     let target_width = parse_target_dimension(args.width.to_string(), width);
@@ -53,11 +55,18 @@ fn main() {
     width_prograss_bar.message("Carving width: ");
     height_prograss_bar.message("Carving height: ");
 
-    let carved = remove_seams_up_to_targets(&mut image, target_width, target_height, !is_fast, || {
-        width_prograss_bar.inc();
-    }, || {
-        height_prograss_bar.inc();
-    });
+    let carved = remove_seams_up_to_targets(
+        &mut image,
+        target_width,
+        target_height,
+        !is_fast,
+        || {
+            width_prograss_bar.inc();
+        },
+        || {
+            height_prograss_bar.inc();
+        },
+    );
 
     carved.save(output_path).unwrap();
 

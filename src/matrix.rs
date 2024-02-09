@@ -9,7 +9,11 @@ pub struct Matrix<T> {
 
 impl<T: fmt::Debug + Ord + Copy> Matrix<T> {
     pub fn new(height: u32, width: u32, data: Vec<T>) -> Matrix<T> {
-        Matrix { height, width, data }
+        Matrix {
+            height,
+            width,
+            data,
+        }
     }
 
     pub fn dimensions(&self) -> (u32, u32) {
@@ -36,8 +40,8 @@ impl<T: fmt::Debug + Ord + Copy> Matrix<T> {
     pub fn crop(&mut self, x: u32, y: u32, width: u32, height: u32) {
         let mut new_data = Vec::with_capacity((width * height) as usize);
 
-        for j in y..y+height {
-            for i in x..x+width {
+        for j in y..y + height {
+            for i in x..x + width {
                 let value = *self.get_value_at(i, j);
                 new_data.push(value);
             }

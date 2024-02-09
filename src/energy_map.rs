@@ -1,5 +1,5 @@
-use image::{GenericImageView, Pixel, RgbImage, SubImage};
 use crate::{matrix::Matrix, seam_removal::SeamPixel};
+use image::{GenericImageView, Pixel, RgbImage, SubImage};
 
 const LEFT: u32 = 0;
 const MID: u32 = 1;
@@ -22,7 +22,8 @@ pub fn generate_energy_map(sub_image: &mut SubImage<&mut RgbImage>) -> Matrix<u8
                     let x_pos = (x + x_offset).max(0).min(width - 1);
                     let y_pos = (y + y_offset).max(0).min(height - 1);
                     // It's totally safe (I guess)
-                    let pixel_intensity = unsafe { sub_image.unsafe_get_pixel(x_pos, y_pos).to_luma() }[0] as i16;
+                    let pixel_intensity =
+                        unsafe { sub_image.unsafe_get_pixel(x_pos, y_pos).to_luma() }[0] as i16;
 
                     gradient_x += sobel_coefficients[x_offset as usize] * pixel_intensity;
                     gradient_y += sobel_coefficients[y_offset as usize] * pixel_intensity;
@@ -78,6 +79,7 @@ mod tests {
 
         let energy_map = generate_energy_map(&mut sub_image);
 
+        #[rustfmt::skip]
         let expected = Matrix{ 
             height: 5,
             width: 5,
