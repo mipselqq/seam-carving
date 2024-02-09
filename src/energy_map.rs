@@ -50,3 +50,46 @@ pub fn remove_vertical_seam<'a>(energy_map: &'a mut Matrix<u8>, seam: &'a Vec<Se
 
     energy_map.crop(0, 0, width - 1, height);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::{GenericImage, Rgb, RgbImage};
+
+    #[test]
+    fn energy_map_generation() {
+        let mut image = RgbImage::new(5, 5);
+
+        let mask = [
+            [1, 0, 1, 0, 0],
+            [0, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1],
+            [1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ];
+
+        for (x, y, pixel) in image.enumerate_pixels_mut() {
+            let color = 255 * mask[y as usize][x as usize];
+
+            *pixel = Rgb([color, color, color]);
+        }
+
+        let mut sub_image = image.sub_image(0, 0, 5, 5);
+
+        let energy_map = generate_energy_map(&mut sub_image);
+
+        let expected = Matrix{ 
+            height: 5,
+            width: 5,
+            data: vec![
+                255, 255, 255, 255, 255,
+                255, 255, 255, 0,   0,
+                255, 255, 255, 255, 255,
+                255, 255, 0,   0,   0,
+                0,   0,   0,   0,   0,
+            ]
+        };
+
+        assert_eq!(energy_map, expected);
+    }
+}
